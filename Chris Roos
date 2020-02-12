@@ -1,0 +1,75 @@
+""" CISS 441 Business Intelligence
+Spring 2020
+Assignment 4 Data Types, Sources & Usage
+06Feb2020
+Moving data from CSV into SQLite db
+"""
+
+# test script tp see if python is workig "print('hello world ... ')""
+
+# print("Hello World")
+
+chat_weather_data = []
+
+import csv
+import sqlite3
+
+DB_FILE = 'Chattanooga_Weather_Observations.db'
+conn = sqlite3.connect(DB_FILE)
+
+def create_Chattanooga_Weather_Observations_table():
+    """
+    This method will be creating the sightings
+    table if it does not exist.
+    """
+    cur = conn.cursor()
+    str_sql = """
+        CREATE TABLE if not exists Chatt_Weath_Obs(
+            id integer primary key autoincrement,
+            date date,
+            MaximumTemp int, 
+            MinimumTemp int,
+            AverageTemp int
+        );
+        """
+    cur.execute(str_sql)
+    conn.commit()
+    cur.close
+
+
+def main():
+    create_Chattanooga_Weather_Observations_table()
+    cur = conn.cursor()
+    with open('1_3a Chattanooga Weather Observations.csv') as file:
+        reader = csv.DictReader(file)
+        count = 0
+        sql_str_insert_with_param = """
+            INSERT INTO Chatt_Weath_Obs
+            (date, MaximumTemp, MinimumTemp, AverageTemp)
+            VALUES
+            (?, ?, ?, ?);
+            """
+        for row in reader:
+            chat_weather_data.append(row)
+            count += 1
+            chat_date = row['Date']
+            chat_maximumtemp = row['MaximumTemp']
+            chat_minimumtemp = row['MinimumTemp']
+            chat_averagetemp = row['AverageTemp']
+            data_tuple = (chat_date, chat_maximumtemp, chat_minimumtemp, chat_averagetemp)
+            cur.execute(sql_str_insert_with_param, data_tuple)
+            conn.commit()
+
+
+            if count <= 10:
+                print(count, chat_date, chat_maximumtemp,chat_minimumtemp,chat_averagetemp)
+
+    cur.close()
+    conn.close()
+
+
+if __name__ == "__main__":
+    main()
+
+
+
